@@ -7,5 +7,8 @@ namespace Trading.Application.Services;
 public sealed class AdminService(IOrderRepository orders, ITradeRepository trades) : IAdminService
 {
     public async Task ResetAsync(CancellationToken cancellationToken = default) 
-    { await orders.DeleteAllAsync(cancellationToken); await trades.DeleteAllAsync(cancellationToken); }
+    { 
+        await orders.DeleteAllAsync(cancellationToken); 
+        await trades.DeleteAllAsync(cancellationToken); 
+    }
 }
