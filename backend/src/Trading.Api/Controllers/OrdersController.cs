@@ -5,8 +5,6 @@ using Trading.Application.Services.Interfaces;
 
 namespace Trading.Api.Controllers;
 
-// TODO: Adicionar ProblemDetails/tratamento global para padronizar erros de validação.
-
 [ApiController]
 [Route("orders")]
 public sealed class OrdersController(IOrderService orders) : ControllerBase

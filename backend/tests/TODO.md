@@ -5,7 +5,7 @@
 - [x] Testar que ativos diferentes não executam entre si.
 - [x] Testar execução parcial e atualização de status.
 - [x] Testar ordenação do livro de ofertas.
-- [ ] Testar cancelamento de ordens abertas, executadas e canceladas.
-- [ ] Testar filtros de ordens e trades.
+- [x] Testar cancelamento de ordens abertas, executadas e canceladas.
+- [x] Testar filtros de trades no serviço.
 - [ ] Testar os endpoints obrigatórios da API.
 - [ ] Testar o fluxo com PostgreSQL via `docker-compose`.

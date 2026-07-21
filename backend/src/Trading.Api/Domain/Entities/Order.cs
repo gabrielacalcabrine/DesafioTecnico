@@ -9,7 +9,9 @@ public class Order
     private Order() { }
     public Order(OrderType type, string asset, int quantity, decimal price)
     {
-        if (string.IsNullOrWhiteSpace(asset)) throw new ArgumentException("Ativo é obrigatório.", nameof(asset));
+        if (!Enum.IsDefined(type)) throw new ArgumentOutOfRangeException(nameof(type));
+        if (string.IsNullOrWhiteSpace(asset) || asset.Trim().Length > 20 || asset.Trim().Any(character => !char.IsLetterOrDigit(character)))
+            throw new ArgumentException("Ativo deve conter de 1 a 20 caracteres alfanuméricos.", nameof(asset));
         if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity));
         if (price <= 0) throw new ArgumentOutOfRangeException(nameof(price));
         Id = Guid.NewGuid(); Type = type; Asset = asset.Trim().ToUpperInvariant(); Quantity = quantity; Price = price;
