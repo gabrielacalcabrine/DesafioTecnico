@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("TradingDb")
     ?? "Host=localhost;Port=5432;Database=trading;Username=trading;Password=trading";
 builder.Services.AddDbContext<TradingDbContext>(options => options.UseNpgsql(connectionString));
-// TODO: Migrar a persistência em memória para PostgreSQL via EF Core.
+// DONE: A persistência usa PostgreSQL via EF Core e TradingDbContext.
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -68,7 +68,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// TODO: registre aqui seus serviços (DbContext, repositórios, casos de uso, validação, logging estruturado...).
+// DONE: Serviços, DbContext, repositórios, validação e controllers estão registrados.
+// TODO: Adicionar logging estruturado e correlation ID.
 // A connection string do PostgreSQL chega via ConnectionStrings__TradingDb (ver docker-compose.yml).
 
 builder.Services.AddCors(options =>
@@ -103,7 +104,7 @@ static string FormatValidationMessage(string key, string message)
     return string.IsNullOrWhiteSpace(message) ? $"{key}: valor inválido." : $"{key}: {message}";
 }
 
-// TODO: implemente o contrato de API descrito no README:
+// DONE: O contrato principal da API está implementado nos controllers.
 //   POST /orders
 //   GET  /orders/{id}   |  GET /orders
 //   GET  /orderbook/{ativo}

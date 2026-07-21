@@ -3,7 +3,8 @@ using System.Text.RegularExpressions;
 
 namespace Trading.Api.DTOs;
 
-// TODO: Separar DTOs por recurso e adicionar validações de negócio que não cabem em DataAnnotations.
+// DONE: As validações principais dos DTOs de entrada estão implementadas.
+// TODO: Separar os DTOs por recurso e mover validações complexas para uma camada própria.
 
 public enum OrderType
 {

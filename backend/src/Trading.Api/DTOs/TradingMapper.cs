@@ -2,7 +2,8 @@ using Trading.Domain.Entities;
 
 namespace Trading.Api.DTOs;
 
-// TODO: Substituir casts entre enums por mapeamento explícito e cobrir o mapper com testes.
+// DONE: O mapper possui cobertura por testes unitários.
+// TODO: Substituir casts entre enums por mapeamento explícito.
 
 public static class TradingMapper
 {

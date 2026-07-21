@@ -4,7 +4,8 @@ using Trading.Domain.Entities;
 using Trading.Domain.Enums;
 namespace Trading.Application.Services;
 
-// TODO: Cobrir execução parcial, prioridade preço-tempo e concorrência com testes unitários.
+// DONE: Execução parcial e prioridade preço-tempo possuem implementação e testes básicos.
+// TODO: Cobrir concorrência e garantir atomicidade com uma transação.
 public sealed class MatchingService(IOrderRepository orders, ITradeRepository trades) : IMatchingService
 {
     public async Task MatchAsync(Order incomingOrder, CancellationToken cancellationToken = default)
