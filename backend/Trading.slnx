@@ -2,4 +2,8 @@
   <Folder Name="/src/">
     <Project Path="src/Trading.Api/Trading.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Trading.Domain.Tests/Trading.Domain.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Trading.IntegrationTests/" />
 </Solution>
