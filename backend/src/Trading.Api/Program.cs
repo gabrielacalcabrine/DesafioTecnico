@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Trading.Api.DTOs;
 using Microsoft.OpenApi.Models;
+using Trading.Domain.Services;
+using Trading.Application.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,8 @@ builder.Services.AddScoped<ITradeService, TradeService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
 builder.Services.AddScoped<IOrderBookService, OrderBookService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddSingleton<IClock, SystemClock>();
+builder.Services.AddSingleton<IDomainEventPublisher, LoggingDomainEventPublisher>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
