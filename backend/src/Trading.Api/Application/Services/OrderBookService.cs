@@ -11,8 +11,7 @@ public sealed class OrderBookService(IOrderRepository orders) : IOrderBookServic
     {
         var openOrders = 
             (await orders.ListAsync(asset, cancellationToken: cancellationToken))
-            .Where(x => x.RemainingQuantity > 0 && x.Status is OrderStatus.Aberta 
-            or OrderStatus.ParcialmenteExecutada);
+            .Where(x => x.RemainingQuantity > 0 && (x.Status is OrderStatus.Aberta or OrderStatus.ParcialmenteExecutada));
         var buys = openOrders
             .Where(x => x.Type == OrderType.Compra)
             .GroupBy(x => x.Price)

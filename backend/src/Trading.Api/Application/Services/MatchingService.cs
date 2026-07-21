@@ -6,7 +6,7 @@ namespace Trading.Application.Services;
 
 // DONE: Execução parcial e prioridade preço-tempo possuem implementação e testes básicos.
 // TODO: Cobrir concorrência e garantir atomicidade com uma transação.
-public sealed class MatchingService(IOrderRepository orders, ITradeRepository trades) : IMatchingService
+public sealed class MatchingService(IOrderRepository orders, ITradeRepository trades, ILogger<MatchingService>? logger = null) : IMatchingService
 {
     public async Task MatchAsync(Order incomingOrder, CancellationToken cancellationToken = default)
     {
@@ -25,6 +25,7 @@ public sealed class MatchingService(IOrderRepository orders, ITradeRepository tr
             var buy = incomingOrder.Type == OrderType.Compra ? incomingOrder : counterOrder;
             var sell = incomingOrder.Type == OrderType.Venda ? incomingOrder : counterOrder;
             await trades.AddAsync(new Trade(buy.Id, sell.Id, incomingOrder.Asset, quantity, counterOrder.Price), cancellationToken);
+            logger?.LogInformation("Trade executed for {Asset}: {Quantity} units at {Price}", incomingOrder.Asset, quantity, counterOrder.Price);
         }
     }
 }
