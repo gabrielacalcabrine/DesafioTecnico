@@ -5,6 +5,31 @@
 
 # dotenv files
 .env
+.env.*
+!.env.example
+
+# Local development secrets and settings
+**/appsettings.Local.json
+**/appsettings.*.local.json
+
+# Docker/database local artifacts
+database/*.tar
+database/data/
+docker-data/
+postgres-data/
+*.dump
+*.backup
+*.sqlite
+*.sqlite3
+*.db
+
+# Test output and local coverage artifacts
+**/TestResults/
+**/test-results/
+**/coverage/
+*.trx
+*.coverage
+*.coveragexml
 
 # User-specific files
 *.rsuser
