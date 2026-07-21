@@ -11,8 +11,10 @@ public sealed class MatchingService(IOrderRepository orders, ITradeRepository tr
     public async Task MatchAsync(Order incomingOrder, CancellationToken cancellationToken = default)
     {
         var active = await orders.ListAsync(incomingOrder.Asset, cancellationToken: cancellationToken);
-        var candidates = active.Where(x => x.Id != incomingOrder.Id && x.RemainingQuantity > 0 && x.Status is OrderStatus.Aberta or OrderStatus.ParcialmenteExecutada)
-            .Where(x => incomingOrder.Type == OrderType.Compra ? x.Type == OrderType.Venda && incomingOrder.Price >= x.Price : x.Type == OrderType.Compra && incomingOrder.Price <= x.Price)
+        var candidates = active.Where(x => x.Id != incomingOrder.Id && x.RemainingQuantity > 0 
+        && x.Status is OrderStatus.Aberta or OrderStatus.ParcialmenteExecutada)
+            .Where(x => incomingOrder.Type == OrderType.Compra ?
+            x.Type == OrderType.Venda && incomingOrder.Price >= x.Price : x.Type == OrderType.Compra && incomingOrder.Price <= x.Price)
             .OrderBy(x => incomingOrder.Type == OrderType.Compra ? x.Price : -x.Price).ThenBy(x => x.CreatedAt).ToArray();
         foreach (var counterOrder in candidates)
         {

@@ -52,6 +52,10 @@ A interface permite enviar ordens, acompanhar o livro de ofertas, visualizar tra
 
 ![Interface do frontend](docs/images/frontend.png)
 
+### Trades executados e ordens abertas
+
+![Trades executados e ordens abertas](docs/images/frontend-orders.png)
+
 ## Arquitetura
 
 ```text
