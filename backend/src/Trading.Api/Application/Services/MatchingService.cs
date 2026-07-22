@@ -2,29 +2,32 @@ using Trading.Application.Repositories.Interfaces;
 using Trading.Application.Services.Interfaces;
 using Trading.Domain.Entities;
 using Trading.Domain.Enums;
-using Trading.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Trading.Application.Events;
 namespace Trading.Application.Services;
 
 // DONE: Execução parcial e prioridade preço-tempo possuem implementação e testes básicos.
-// TODO: Cobrir concorrência e garantir atomicidade com uma transação.
-public sealed class MatchingService(IOrderRepository orders, ITradeRepository trades, TradingDbContext? db = null, ILogger<MatchingService>? logger = null, IDomainEventPublisher? eventPublisher = null) : IMatchingService
+public sealed class MatchingService(
+    IOrderRepository orders,
+    ITradeRepository trades,
+    ITransactionManager? transactionManager = null,
+    ILogger<MatchingService>? logger = null,
+    IDomainEventPublisher? eventPublisher = null) : IMatchingService
 {
     public async Task MatchAsync(Order incomingOrder, CancellationToken cancellationToken = default)
     {
-        if (db is not null)
+        if (transactionManager is not null)
         {
-            var strategy = db.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () => await MatchCoreAsync(incomingOrder, cancellationToken));
+            await transactionManager.ExecuteSerializableAsync(
+                ct => MatchCoreAsync(incomingOrder, ct),
+                cancellationToken);
             return;
         }
+
         await MatchCoreAsync(incomingOrder, cancellationToken);
     }
 
     private async Task MatchCoreAsync(Order incomingOrder, CancellationToken cancellationToken)
     {
-        await using var transaction = db is null ? null : await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
         var active = await orders.ListAsync(incomingOrder.Asset, cancellationToken: cancellationToken);
         var candidates = active.Where(x => x.Id != incomingOrder.Id && x.RemainingQuantity > 0 
         && x.Status is OrderStatus.Aberta or OrderStatus.ParcialmenteExecutada)
@@ -46,6 +49,5 @@ public sealed class MatchingService(IOrderRepository orders, ITradeRepository tr
             }
             logger?.LogInformation("Trade executed for {Asset}: {Quantity} units at {Price}", incomingOrder.Asset, quantity, counterOrder.Price);
         }
-        if (transaction is not null) await transaction.CommitAsync(cancellationToken);
     }
 }

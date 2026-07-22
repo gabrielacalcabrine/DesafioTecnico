@@ -8,4 +8,4 @@
 - [x] Garantir que o preço de execução siga a regra definida para a ordem existente.
 - [ ] Criar mapeadores entre domínio e DTOs sem acoplamento à API.
 - [x] Publicar eventos de ordem criada, executada e cancelada.
-- [ ] Adicionar paginação nas consultas de ordens e trades.
+- [x] Adicionar paginação nas consultas de ordens e trades.

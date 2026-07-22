@@ -8,7 +8,6 @@ namespace Trading.Infrastructure.Repositories;
 
 public sealed class TradeRepository(TradingDbContext db) : ITradeRepository
 {
-    // TODO: Participar da mesma transação do matching para garantir consistência entre ordens e trades.
     public async Task AddAsync(Trade trade, CancellationToken cancellationToken = default)
     {
         if (db.Entry(trade).State == EntityState.Detached) db.Trades.Add(trade);

@@ -1,4 +1,5 @@
 using Trading.Application.Repositories.Interfaces;
+using Trading.Application.Models;
 using Trading.Domain.Entities;
 
 namespace Trading.Domain.Tests;
@@ -15,6 +16,11 @@ internal sealed class FakeOrderRepository : IOrderRepository
         if (Enum.TryParse<Trading.Domain.Enums.OrderStatus>(status, true, out var parsed)) result = result.Where(x => x.Status == parsed);
         return Task.FromResult<IReadOnlyCollection<Order>>(result.ToArray());
     }
+    public Task<PagedResult<Order>> ListPageAsync(string? asset, string? status, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var all = ListAsync(asset, status, cancellationToken).Result;
+        return Task.FromResult(new PagedResult<Order>(all.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), page, pageSize, all.Count));
+    }
     public Task DeleteAllAsync(CancellationToken cancellationToken = default) { Items.Clear(); return Task.CompletedTask; }
 }
 
@@ -30,6 +36,11 @@ internal sealed class FakeTradeRepository : ITradeRepository
         if (end.HasValue) result = result.Where(x => x.ExecutedAt <= end);
         if (orderId.HasValue) result = result.Where(x => x.BuyOrderId == orderId || x.SellOrderId == orderId);
         return Task.FromResult<IReadOnlyCollection<Trade>>(result.ToArray());
+    }
+    public Task<PagedResult<Trade>> ListPageAsync(string? asset, DateTimeOffset? start, DateTimeOffset? end, Guid? orderId, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var all = ListAsync(asset, start, end, orderId, cancellationToken).Result;
+        return Task.FromResult(new PagedResult<Trade>(all.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), page, pageSize, all.Count));
     }
     public Task DeleteAllAsync(CancellationToken cancellationToken = default) { Items.Clear(); return Task.CompletedTask; }
 }
