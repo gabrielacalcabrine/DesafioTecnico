@@ -11,6 +11,8 @@ using Trading.Api.DTOs;
 using Microsoft.OpenApi.Models;
 using Trading.Domain.Services;
 using Trading.Application.Events;
+using Npgsql;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,6 +110,9 @@ app.UseExceptionHandler(errorApp =>
             KeyNotFoundException => (StatusCodes.Status404NotFound, "not_found", "O recurso solicitado não foi encontrado."),
             InvalidOperationException invalidOperation => (StatusCodes.Status409Conflict, "conflict", invalidOperation.Message),
             ValidationException validation => (StatusCodes.Status406NotAcceptable, "validation_error", validation.Message),
+            DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "concurrency_conflict", "O recurso foi alterado por outra operação. Tente novamente."),
+            _ when IsSerializableTransactionFailure(exception) => (StatusCodes.Status409Conflict, "serialization_failure", "A operação entrou em conflito com outra transação. Tente novamente."),
+            JsonException => (StatusCodes.Status500InternalServerError, "serialization_error", "Não foi possível serializar a resposta."),
             _ => (StatusCodes.Status500InternalServerError, "internal_error", "Ocorreu um erro interno. Tente novamente mais tarde.")
         };
 
@@ -147,6 +152,19 @@ app.MapGet("/health", async (TradingDbContext db, CancellationToken cancellation
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
 });
+
+static bool IsSerializableTransactionFailure(Exception? exception)
+{
+    while (exception is not null)
+    {
+        if (exception is PostgresException { SqlState: "40001" })
+            return true;
+
+        exception = exception.InnerException;
+    }
+
+    return false;
+}
 
 static string FormatValidationMessage(string key, string message)
 {

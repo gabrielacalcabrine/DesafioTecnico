@@ -39,8 +39,7 @@ public sealed class OrdersController(IOrderService orders) : ControllerBase
     [HttpPost("{id:guid}/cancel")]
     public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
     {
-        try { return Ok((await orders.CancelAsync(id, cancellationToken)).ToDto()); }
-        catch (KeyNotFoundException) { return NotFound(); }
-        catch (InvalidOperationException exception) { return Conflict(new ErrorResponseDto { Code = "order_not_cancellable", Message = exception.Message }); }
+        var order = await orders.CancelAsync(id, cancellationToken);
+        return Ok(order.ToDto());
     }
 }
