@@ -11,6 +11,8 @@ using Trading.Api.DTOs;
 using Microsoft.OpenApi.Models;
 using Trading.Domain.Services;
 using Trading.Application.Events;
+using Npgsql;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<ITradeRepository, TradeRepository>();
+builder.Services.AddScoped<ITransactionManager, EfTransactionManager>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ITradeService, TradeService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
@@ -58,7 +61,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
             Errors = errors
         })
         {
-            StatusCode = StatusCodes.Status406NotAcceptable
+            StatusCode = StatusCodes.Status400BadRequest
         };
     };
 });
@@ -107,7 +110,10 @@ app.UseExceptionHandler(errorApp =>
         {
             KeyNotFoundException => (StatusCodes.Status404NotFound, "not_found", "O recurso solicitado não foi encontrado."),
             InvalidOperationException invalidOperation => (StatusCodes.Status409Conflict, "conflict", invalidOperation.Message),
-            ValidationException validation => (StatusCodes.Status406NotAcceptable, "validation_error", validation.Message),
+            ValidationException validation => (StatusCodes.Status400BadRequest, "validation_error", validation.Message),
+            DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "concurrency_conflict", "O recurso foi alterado por outra operação. Tente novamente."),
+            _ when IsConcurrencyConflict(exception) => (StatusCodes.Status409Conflict, "concurrency_conflict", "A operação não pôde ser concluída porque os dados foram alterados por outra operação. Atualize os dados e tente novamente."),
+            JsonException => (StatusCodes.Status500InternalServerError, "serialization_error", "Não foi possível serializar a resposta."),
             _ => (StatusCodes.Status500InternalServerError, "internal_error", "Ocorreu um erro interno. Tente novamente mais tarde.")
         };
 
@@ -147,6 +153,19 @@ app.MapGet("/health", async (TradingDbContext db, CancellationToken cancellation
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
 });
+
+static bool IsConcurrencyConflict(Exception? exception)
+{
+    while (exception is not null)
+    {
+        if (exception is PostgresException { SqlState: "40001" or "40P01" })
+            return true;
+
+        exception = exception.InnerException;
+    }
+
+    return false;
+}
 
 static string FormatValidationMessage(string key, string message)
 {

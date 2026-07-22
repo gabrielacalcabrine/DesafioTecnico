@@ -4,8 +4,6 @@ using Trading.Application.Models;
 
 namespace Trading.Application.Services.Interfaces;
 
-// TODO: Adicionar operações de validação e consulta paginada de ordens.
-
 public interface IOrderService
 {
     Task<Order> CreateAsync(OrderType type, string asset, int quantity, decimal price, CancellationToken cancellationToken = default);

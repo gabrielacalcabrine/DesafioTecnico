@@ -1,12 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import './styles.css'
-import { cancelOrder, checkHealth, createOrder, getOrderBook, listOrders, listTrades, Order, OrderBook, OrderType, Trade } from './api'
-
-const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
-const formatMoney = (value: number) => money.format(value)
-const formatDate = (value: string) => dateTime.format(new Date(value))
-const remaining = (order: Order) => order.quantidade - order.quantidadeExecutada
+import { cancelOrder, checkHealth, createOrder, getOrderBook, listOrders, listTrades, Order, OrderBook as OrderBookData, OrderType, Trade } from './api'
+import { Footer, Header, Hero, OpenOrdersPanel, OrderBook, OrderForm, TradesPanel } from './components'
 
 function App() {
   const [asset, setAsset] = useState('PETR4')
@@ -15,7 +10,7 @@ function App() {
   const [price, setPrice] = useState('30.50')
   const [orders, setOrders] = useState<Order[]>([])
   const [trades, setTrades] = useState<Trade[]>([])
-  const [book, setBook] = useState<OrderBook>({ ativo: 'PETR4', compras: [], vendas: [] })
+  const [book, setBook] = useState<OrderBookData>({ ativo: 'PETR4', compras: [], vendas: [] })
   const [isHealthy, setIsHealthy] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -52,15 +47,12 @@ function App() {
   }
 
   return <main className="app-shell">
-    <header className="topbar"><div className="brand"><span className="brand-mark">↗</span><div><p className="eyebrow">MERCADO ABERTO</p><h1>Raiz Trading</h1></div></div><div className="connection-pill"><span className={`status-dot ${isHealthy ? 'online' : ''}`} />{isHealthy ? 'API conectada' : 'API indisponível'}</div></header>
-    <section className="hero"><div><p className="eyebrow">PAINEL DE NEGOCIAÇÃO</p><h2>Decida com clareza.</h2><p className="hero-copy">Acompanhe o livro, envie ordens e veja os negócios executados em um só lugar.</p></div><label className="asset-selector"><span>Ativo em acompanhamento</span><input value={asset} onChange={(event) => setAsset(event.target.value.toUpperCase())} maxLength={20} aria-label="Ativo em acompanhamento" /></label></section>
+    <Header isHealthy={isHealthy} />
+    <Hero asset={asset} onAssetChange={setAsset} />
     {message && <div className={`alert ${message.type}`}>{message.text}</div>}
-    <section className="dashboard-grid">
-      <form className="card order-form" onSubmit={handleSubmit}><div className="card-heading"><div><p className="eyebrow">NOVA ORDEM</p><h3>Enviar ordem</h3></div><span className="card-icon">＋</span></div><div className="segmented-control">{(['Compra', 'Venda'] as OrderType[]).map((type) => <button key={type} type="button" className={orderType === type ? `selected ${type.toLowerCase()}` : ''} onClick={() => setOrderType(type)}>{type}</button>)}</div><label>Ativo<input value={asset} onChange={(event) => setAsset(event.target.value.toUpperCase())} placeholder="PETR4" maxLength={20} /></label><div className="form-row"><label>Quantidade<input type="number" min="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} /></label><label>Preço por ação<input inputMode="decimal" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="30,50" /></label></div><button className={`primary-button ${orderType === 'Venda' ? 'sell-button' : ''}`} disabled={submitting} type="submit">{submitting ? 'Enviando...' : `Enviar ordem de ${orderType.toLowerCase()}`}</button><p className="form-note">As ordens compatíveis são executadas automaticamente pelo motor de matching.</p></form>
-      <section className="card order-book-card"><div className="card-heading"><div><p className="eyebrow">MARKET DEPTH</p><h3>Livro de ofertas <span className="ticker">{book.ativo}</span></h3></div><span className="live-label"><span className="status-dot online" /> AO VIVO</span></div><div className="book-columns"><div><div className="book-label buy-label"><span>COMPRAS</span><span>QTD.</span></div>{book.compras.length ? book.compras.map((level) => <div className="book-row" key={`buy-${level.preco}`}><strong>{formatMoney(level.preco)}</strong><span>{level.quantidade}</span></div>) : <p className="empty-state">Sem ofertas de compra</p>}</div><div><div className="book-label sell-label"><span>VENDAS</span><span>QTD.</span></div>{book.vendas.length ? book.vendas.map((level) => <div className="book-row" key={`sell-${level.preco}`}><strong>{formatMoney(level.preco)}</strong><span>{level.quantidade}</span></div>) : <p className="empty-state">Sem ofertas de venda</p>}</div></div></section>
-    </section>
-    <section className="lower-grid"><section className="card"><div className="card-heading"><div><p className="eyebrow">LIQUIDEZ</p><h3>Negócios executados</h3></div><span className="count-badge">{trades.length}</span></div>{loading ? <p className="empty-state">Carregando negócios...</p> : trades.length === 0 ? <p className="empty-state">Nenhum negócio executado para {asset}.</p> : <div className="trade-list">{trades.slice().reverse().map((trade) => <div className="trade-row" key={trade.id}><div><strong>{trade.ativo}</strong><span>{formatDate(trade.dataHoraExecucao)}</span></div><div><strong>{trade.quantidade} ações</strong><span>{formatMoney(trade.precoExecucao)}</span></div></div>)}</div>}</section><section className="card"><div className="card-heading"><div><p className="eyebrow">ACOMPANHAMENTO</p><h3>Ordens abertas</h3></div><span className="count-badge">{openOrders.length}</span></div>{openOrders.length === 0 ? <p className="empty-state">Nenhuma ordem aberta para {asset}.</p> : <div className="open-order-list">{openOrders.map((order) => <div className="open-order-row" key={order.id}><div className="order-summary"><span className={`order-type ${order.tipo === 'Compra' ? 'buy' : 'sell'}`}>{order.tipo === 'Compra' ? 'C' : 'V'}</span><div><strong>{order.quantidade} ações · {formatMoney(order.preco)}</strong><span>{order.status} · {remaining(order)} remanescentes</span></div></div><button className="cancel-button" onClick={() => void handleCancel(order)}>Cancelar</button></div>)}</div>}</section></section>
-    <footer className="footer"><span>Raiz Trading</span><span>Atualização automática a cada 2 segundos · API local</span></footer>
+    <section className="dashboard-grid"><OrderForm asset={asset} orderType={orderType} quantity={quantity} price={price} submitting={submitting} onAssetChange={setAsset} onOrderTypeChange={setOrderType} onQuantityChange={setQuantity} onPriceChange={setPrice} onSubmit={handleSubmit} /><OrderBook book={book} /></section>
+    <section className="lower-grid"><TradesPanel asset={asset} trades={trades} loading={loading} /><OpenOrdersPanel asset={asset} orders={openOrders} onCancel={(order) => void handleCancel(order)} /></section>
+    <Footer />
   </main>
 }
 

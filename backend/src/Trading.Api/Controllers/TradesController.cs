@@ -5,7 +5,7 @@ using Trading.Application.Services.Interfaces;
 
 namespace Trading.Api.Controllers;
 
-// TODO: Adicionar paginação e limite máximo para evitar respostas muito grandes.
+// A consulta oferece resposta simples ou paginada conforme os parâmetros recebidos.
 
 [ApiController]
 [Route("trades")]
