@@ -17,7 +17,7 @@ public sealed class MatchingService(
     {
         if (transactionManager is not null)
         {
-            await transactionManager.ExecuteSerializableAsync(
+            await transactionManager.ExecuteConsistentAsync(
                 ct => MatchCoreAsync(incomingOrder, ct),
                 cancellationToken);
             return;

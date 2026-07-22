@@ -2,7 +2,7 @@ namespace Trading.Application.Services.Interfaces;
 
 public interface ITransactionManager
 {
-    Task ExecuteSerializableAsync(
+    Task ExecuteConsistentAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default);
 }

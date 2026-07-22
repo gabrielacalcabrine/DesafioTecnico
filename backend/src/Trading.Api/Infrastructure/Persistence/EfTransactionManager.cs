@@ -5,7 +5,7 @@ namespace Trading.Infrastructure.Persistence;
 
 public sealed class EfTransactionManager(TradingDbContext db) : ITransactionManager
 {
-    public async Task ExecuteSerializableAsync(
+    public async Task ExecuteConsistentAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default)
     {
@@ -13,7 +13,7 @@ public sealed class EfTransactionManager(TradingDbContext db) : ITransactionMana
         await strategy.ExecuteAsync(async () =>
         {
             await using var transaction = await db.Database.BeginTransactionAsync(
-                System.Data.IsolationLevel.Serializable,
+                System.Data.IsolationLevel.RepeatableRead,
                 cancellationToken);
 
             await operation(cancellationToken);

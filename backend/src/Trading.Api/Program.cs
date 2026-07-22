@@ -112,7 +112,7 @@ app.UseExceptionHandler(errorApp =>
             InvalidOperationException invalidOperation => (StatusCodes.Status409Conflict, "conflict", invalidOperation.Message),
             ValidationException validation => (StatusCodes.Status406NotAcceptable, "validation_error", validation.Message),
             DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "concurrency_conflict", "O recurso foi alterado por outra operação. Tente novamente."),
-            _ when IsSerializableTransactionFailure(exception) => (StatusCodes.Status409Conflict, "serialization_failure", "A operação entrou em conflito com outra transação. Tente novamente."),
+            _ when IsConcurrencyConflict(exception) => (StatusCodes.Status409Conflict, "concurrency_conflict", "A operação não pôde ser concluída porque os dados foram alterados por outra operação. Atualize os dados e tente novamente."),
             JsonException => (StatusCodes.Status500InternalServerError, "serialization_error", "Não foi possível serializar a resposta."),
             _ => (StatusCodes.Status500InternalServerError, "internal_error", "Ocorreu um erro interno. Tente novamente mais tarde.")
         };
@@ -154,11 +154,11 @@ app.MapGet("/health", async (TradingDbContext db, CancellationToken cancellation
     }
 });
 
-static bool IsSerializableTransactionFailure(Exception? exception)
+static bool IsConcurrencyConflict(Exception? exception)
 {
     while (exception is not null)
     {
-        if (exception is PostgresException { SqlState: "40001" })
+        if (exception is PostgresException { SqlState: "40001" or "40P01" })
             return true;
 
         exception = exception.InnerException;
