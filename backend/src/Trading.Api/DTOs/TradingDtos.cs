@@ -91,6 +91,8 @@ public sealed class OrderQueryDto : IValidatableObject
 {
     public string? Ativo { get; init; }
     public OrderStatus? Status { get; init; }
+    public int? Page { get; init; }
+    public int? PageSize { get; init; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -105,6 +107,8 @@ public sealed class TradeQueryDto : IValidatableObject
     public DateTimeOffset? Inicio { get; init; }
     public DateTimeOffset? Fim { get; init; }
     public Guid? OrdemId { get; init; }
+    public int? Page { get; init; }
+    public int? PageSize { get; init; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

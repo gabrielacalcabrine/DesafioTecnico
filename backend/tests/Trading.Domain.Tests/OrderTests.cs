@@ -58,4 +58,30 @@ public sealed class OrderTests
         order.Execute(10);
         Assert.Throws<InvalidOperationException>(() => order.Cancel());
     }
+
+    [Fact]
+    public void ShouldNotCancelAlreadyCancelledOrder()
+    {
+        var order = new Order(OrderType.Venda, "VALE3", 10, 60m);
+        order.Cancel();
+
+        Assert.Throws<InvalidOperationException>(() => order.Cancel());
+    }
+
+    [Fact]
+    public void ShouldRejectInvalidAssetAndExecutionState()
+    {
+        Assert.Throws<ArgumentException>(() => new Order(OrderType.Compra, "PETR 4", 1, 1m));
+        var order = new Order(OrderType.Compra, "PETR4", 10, 1m);
+        Assert.Throws<ArgumentOutOfRangeException>(() => order.Execute(11));
+        order.Cancel();
+        Assert.Throws<InvalidOperationException>(() => order.Execute(1));
+    }
+
+    [Fact]
+    public void ShouldExposeCreationEvent()
+    {
+        var order = new Order(OrderType.Compra, "PETR4", 1, 1m);
+        Assert.Single(order.DomainEvents);
+    }
 }

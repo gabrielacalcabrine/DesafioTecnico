@@ -20,8 +20,13 @@ public sealed class OrdersController(IOrderService orders) : ControllerBase
     public async Task<ActionResult<IReadOnlyCollection<OrderResponseDto>>> List([FromQuery] OrderQueryDto query, CancellationToken cancellationToken)
     {
         Trading.Domain.Enums.OrderStatus? status = query.Status.HasValue ? (Trading.Domain.Enums.OrderStatus)query.Status.Value : null;
-        var result = await orders.ListAsync(query.Ativo, status, cancellationToken);
-        return Ok(result.Select(x => x.ToDto()).ToArray());
+        if (!query.Page.HasValue && !query.PageSize.HasValue)
+        {
+            var result = await orders.ListAsync(query.Ativo, status, cancellationToken);
+            return Ok(result.Select(x => x.ToDto()).ToArray());
+        }
+        var paged = await orders.ListPageAsync(query.Ativo, status, query.Page ?? 1, query.PageSize ?? 50, cancellationToken);
+        return Ok(new { items = paged.Items.Select(x => x.ToDto()).ToArray(), paged.Page, paged.PageSize, paged.TotalCount, paged.TotalPages });
     }
 
     [HttpGet("{id:guid}")]
