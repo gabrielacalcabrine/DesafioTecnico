@@ -61,7 +61,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
             Errors = errors
         })
         {
-            StatusCode = StatusCodes.Status406NotAcceptable
+            StatusCode = StatusCodes.Status400BadRequest
         };
     };
 });
@@ -110,7 +110,7 @@ app.UseExceptionHandler(errorApp =>
         {
             KeyNotFoundException => (StatusCodes.Status404NotFound, "not_found", "O recurso solicitado não foi encontrado."),
             InvalidOperationException invalidOperation => (StatusCodes.Status409Conflict, "conflict", invalidOperation.Message),
-            ValidationException validation => (StatusCodes.Status406NotAcceptable, "validation_error", validation.Message),
+            ValidationException validation => (StatusCodes.Status400BadRequest, "validation_error", validation.Message),
             DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "concurrency_conflict", "O recurso foi alterado por outra operação. Tente novamente."),
             _ when IsConcurrencyConflict(exception) => (StatusCodes.Status409Conflict, "concurrency_conflict", "A operação não pôde ser concluída porque os dados foram alterados por outra operação. Atualize os dados e tente novamente."),
             JsonException => (StatusCodes.Status500InternalServerError, "serialization_error", "Não foi possível serializar a resposta."),
